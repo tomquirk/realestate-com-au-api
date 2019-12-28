@@ -6,13 +6,45 @@ import logging
 from time import sleep
 from urllib.parse import urlencode
 import json
+import re
 from fajita import Fajita
-import realestate_com_au.settings as settings
 
+import realestate_com_au.settings as settings
 from realestate_com_au.graphql import searchByQuery
 
 
 logger = logging.getLogger(__name__)
+
+
+def parse_price_text(price_display_text):
+    regex = r".*\$([0-9\,\.]+(?:k|m)*).*"
+    price_groups = re.search(regex, price_display_text)
+    price_text = (
+        price_groups.groups()[0] if price_groups and price_groups.groups() else None
+    )
+    if price_text is None:
+        return None
+
+    price = None
+    if price_text[-1] == "k":
+        price = int(price_text[:-1].replace(",", ""))
+
+        price *= 1000
+    elif price_text[-1] == "m":
+        price = int(price_text[:-1].replace(",", ""))
+        price *= 1000000
+    else:
+        price = int(price_text.replace(",", ""))
+
+    return price
+
+
+def parse_search_listing(listing):
+    price_text = listing.get("price", {}).get("display", "")
+    listing["price"] = parse_price_text(price_text)
+
+    print(listing["price"], price_text)
+    return listing
 
 
 class RealestateComAu(Fajita):
@@ -88,6 +120,9 @@ class RealestateComAu(Fajita):
         results = data.get("data", {}).get("buySearch", {}).get("results", {})
         surrounding_listings = results.get("surrounding", {}).get("items", [])
 
-        listings = exact_listings + surrounding_listings
+        listings = [
+            parse_search_listing(listing.get("listing", {}))
+            for listing in exact_listings + surrounding_listings
+        ]
 
-        return [listing.get("listing", {}) for listing in listings]
+        return listings
