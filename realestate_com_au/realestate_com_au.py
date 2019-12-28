@@ -42,8 +42,6 @@ def parse_price_text(price_display_text):
 def parse_search_listing(listing):
     price_text = listing.get("price", {}).get("display", "")
     listing["price"] = parse_price_text(price_text)
-
-    print(listing["price"], price_text)
     return listing
 
 
@@ -85,44 +83,73 @@ class RealestateComAu(Fajita):
         pets_allowed=False,
         ex_under_contract=False,
     ):
-        query_variables = {
-            "channel": channel,
-            "page": 1,
-            "localities": [{"searchLocation": location}],
-            "filters": {
-                "surroundingSuburbs": surrounding_suburbs,
-                "excludeNoSalePrice": exclude_no_sale_price,
-                "ex-under-contract": ex_under_contract,
-                "furnished": furnished,
-                "petsAllowed": pets_allowed,
-            },
-        }
+        def get_query_variables(page=1):
+            query_variables = {
+                "channel": channel,
+                "page": page,
+                "localities": [{"searchLocation": location}],
+                "filters": {
+                    "surroundingSuburbs": surrounding_suburbs,
+                    "excludeNoSalePrice": exclude_no_sale_price,
+                    "ex-under-contract": ex_under_contract,
+                    "furnished": furnished,
+                    "petsAllowed": pets_allowed,
+                },
+            }
+            return query_variables
 
-        payload = {
-            "operationName": "searchByQuery",
-            "variables": {
-                "query": json.dumps(query_variables),
-                "testListings": False,
-                "nullifyOptionals": False,
-            },
-            "query": searchByQuery.QUERY,
-        }
+        def get_payload(query_variables):
+            payload = {
+                "operationName": "searchByQuery",
+                "variables": {
+                    "query": json.dumps(query_variables),
+                    "testListings": False,
+                    "nullifyOptionals": False,
+                },
+                "query": searchByQuery.QUERY,
+            }
 
-        res = self._post("", json=payload)
-        data = res.json()
-        exact_listings = (
-            data.get("data", {})
-            .get("buySearch", {})
-            .get("results", {})
-            .get("exact", {})
-            .get("items", [])
+            return payload
+
+        def parse_items(res):
+            data = res.json()
+            exact_listings = (
+                data.get("data", {})
+                .get("buySearch", {})
+                .get("results", {})
+                .get("exact", {})
+                .get("items", [])
+            )
+            results = data.get("data", {}).get("buySearch", {}).get("results", {})
+            surrounding_listings = results.get("surrounding", {}).get("items", [])
+
+            listings = [
+                parse_search_listing(listing.get("listing", {}))
+                for listing in exact_listings + surrounding_listings
+            ]
+
+            return listings
+
+        def get_current_page(**kwargs):
+            current_query_variables = json.loads(kwargs["json"]["variables"]["query"])
+            return current_query_variables["page"]
+
+        def next_page(**kwargs):
+            current_page = get_current_page(**kwargs)
+            kwargs["json"] = get_payload(get_query_variables(current_page + 1))
+            return kwargs
+
+        def is_done(items, **kwargs):
+            current_page = get_current_page(**kwargs)
+            return current_page == 3
+
+        listings = self._scroll(
+            "",
+            "POST",
+            parse_items,
+            next_page,
+            is_done,
+            json=get_payload(get_query_variables(1)),
         )
-        results = data.get("data", {}).get("buySearch", {}).get("results", {})
-        surrounding_listings = results.get("surrounding", {}).get("items", [])
-
-        listings = [
-            parse_search_listing(listing.get("listing", {}))
-            for listing in exact_listings + surrounding_listings
-        ]
 
         return listings
