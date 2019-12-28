@@ -1,0 +1,21 @@
+**tmp/
+.env
+
+# Dev
+*.pyc
+.vscode
+/playground.py
+cookies/
+
+.pytest_cache
+**__pycache__/
+credentials.json
+
+# PyPI
+dist
+build
+*.egg-info
+
+# Misc
+.DS_Store
+.idea/
