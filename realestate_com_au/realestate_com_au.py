@@ -11,38 +11,9 @@ from fajita import Fajita
 
 import realestate_com_au.settings as settings
 from realestate_com_au.graphql import searchByQuery
-
+from realestate_com_au.objects.listing import get_listing
 
 logger = logging.getLogger(__name__)
-
-
-def parse_price_text(price_display_text):
-    regex = r".*\$([0-9\,\.]+(?:k|m)*).*"
-    price_groups = re.search(regex, price_display_text)
-    price_text = (
-        price_groups.groups()[0] if price_groups and price_groups.groups() else None
-    )
-    if price_text is None:
-        return None
-
-    price = None
-    if price_text[-1] == "k":
-        price = int(price_text[:-1].replace(",", ""))
-
-        price *= 1000
-    elif price_text[-1] == "m":
-        price = int(price_text[:-1].replace(",", ""))
-        price *= 1000000
-    else:
-        price = int(price_text.replace(",", ""))
-
-    return price
-
-
-def parse_search_listing(listing):
-    price_text = listing.get("price", {}).get("display", "")
-    listing["price"] = parse_price_text(price_text)
-    return listing
 
 
 class RealestateComAu(Fajita):
@@ -58,14 +29,16 @@ class RealestateComAu(Fajita):
         "sec-fetch-site": "same-site",
         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
     }
+    _MAX_SEARCH_PAGE_SIZE = 100
+    _DEFAULT_SEARCH_PAGE_SIZE = 25
 
     def __init__(
         self, proxies={}, debug=False,
     ):
         Fajita.__init__(
             self,
-            base_url=RealestateComAu.API_BASE_URL,
-            headers=RealestateComAu.REQUEST_HEADERS,
+            base_url=self.API_BASE_URL,
+            headers=self.REQUEST_HEADERS,
             proxies=proxies,
             debug=debug,
             cookie_directory=settings.COOKIE_PATH,
@@ -75,6 +48,7 @@ class RealestateComAu(Fajita):
 
     def search(
         self,
+        limit=-1,
         channel="buy",
         location=None,
         surrounding_suburbs=True,
@@ -87,6 +61,11 @@ class RealestateComAu(Fajita):
             query_variables = {
                 "channel": channel,
                 "page": page,
+                "pageSize": (
+                    min(limit, self._MAX_SEARCH_PAGE_SIZE)
+                    if limit
+                    else self._DEFAULT_SEARCH_PAGE_SIZE
+                ),
                 "localities": [{"searchLocation": location}],
                 "filters": {
                     "surroundingSuburbs": surrounding_suburbs,
@@ -124,7 +103,7 @@ class RealestateComAu(Fajita):
             surrounding_listings = results.get("surrounding", {}).get("items", [])
 
             listings = [
-                parse_search_listing(listing.get("listing", {}))
+                get_listing(listing.get("listing", {}))
                 for listing in exact_listings + surrounding_listings
             ]
 
@@ -139,9 +118,26 @@ class RealestateComAu(Fajita):
             kwargs["json"] = get_payload(get_query_variables(current_page + 1))
             return kwargs
 
-        def is_done(items, **kwargs):
-            current_page = get_current_page(**kwargs)
-            return current_page == 3
+        def is_done(items, res, **kwargs):
+            items_count = len(items)
+            if limit > -1:
+                if items_count > limit:
+                    return True
+
+            data = res.json()
+            results = data.get("data", {}).get("buySearch", {}).get("results", {})
+            total = results.get("totalResultsCount")
+
+            if items_count >= total:
+                return True
+
+            pagination = results.get("pagination")
+
+            # failsafe
+            if not pagination.get("moreResultsAvailable"):
+                return False
+
+            return False
 
         listings = self._scroll(
             "",
