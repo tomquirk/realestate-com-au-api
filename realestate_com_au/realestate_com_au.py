@@ -85,14 +85,18 @@ class RealestateComAu(Fajita):
                     "petsAllowed": pets_allowed,
                 },
             }
-            if max_price > -1 or min_price > 0:
+            if (max_price is not None and max_price > -1) or (
+                max_price is not None and min_price > 0
+            ):
                 price_filter = {}
                 if max_price > -1:
                     price_filter["maximum"] = str(max_price)
                 if min_price > 0:
                     price_filter["minimum"] = str(min_price)
                 query_variables["filters"]["priceRange"] = price_filter
-            if max_bedrooms > -1 or min_bedrooms > 0:
+            if (max_bedrooms is not None and max_bedrooms > -1) or (
+                max_bedrooms is not None and min_bedrooms > 0
+            ):
                 beds_filter = {}
                 if max_bedrooms > -1:
                     beds_filter["maximum"] = str(max_bedrooms)
@@ -101,11 +105,11 @@ class RealestateComAu(Fajita):
                 query_variables["filters"]["bedrooms"] = beds_filter
             if property_types:
                 query_variables["filters"]["propertyTypes"] = property_types
-            if min_bathrooms > 0:
+            if min_bathrooms is not None and min_bathrooms > 0:
                 query_variables["filters"]["minimumBathroom"] = str(min_bathrooms)
-            if min_carspaces > 0:
+            if min_carspaces is not None and min_carspaces > 0:
                 query_variables["filters"]["minimumCars"] = str(min_carspaces)
-            if min_land_size > 0:
+            if min_land_size is not None and min_land_size > 0:
                 query_variables["filters"]["landSize"] = {"minimum": str(min_land_size)}
             if construction_status:
                 query_variables["filters"]["constructionStatus"] = construction_status
@@ -132,18 +136,17 @@ class RealestateComAu(Fajita):
 
         def parse_items(res):
             data = res.json()
-            exact_listings = (
-                data.get("data", {})
-                .get(f"{channel}Search", {})
-                .get("results", {})
-                .get("exact", {})
-                .get("items", [])
+            results = (
+                data.get("data", {}).get(f"{channel}Search", {}).get("results", {})
             )
-            results = data.get("data", {}).get("buySearch", {}).get("results", {})
-            surrounding_listings = results.get("surrounding", {}).get("items", [])
+
+            exact_listings = (results.get("exact", {}) or {}).get("items", [])
+            surrounding_listings = (results.get("surrounding", {}) or {}).get(
+                "items", []
+            )
 
             listings = [
-                get_listing(listing.get("listing", {}))
+                get_listing(listing.get("listing", {}) or {})
                 for listing in exact_listings + surrounding_listings
             ]
 
@@ -159,9 +162,8 @@ class RealestateComAu(Fajita):
             return kwargs
 
         def is_done(items, res, **kwargs):
-            import ipdb
-
-            ipdb.set_trace()
+            if not items:
+                return True
             items_count = len(items)
             if limit > -1:
                 if items_count >= limit:

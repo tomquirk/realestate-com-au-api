@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 import re
+from realestate_com_au.utils import delete_nulls
 
 
 @dataclass
@@ -23,7 +24,7 @@ class Listing:
     listing_company_id: str
     listing_company_name: str
     listing_company_phone: str
-    auction: bool
+    auction_date: str
     description: str
     listers: list = field(default_factory=list)
 
@@ -37,17 +38,6 @@ class Lister:
     url: str
     phone: str
     email: str
-
-
-def _delete_nulls(obj):
-    new_obj = {}
-    for key, val in obj.items():
-        if val is not None:
-            if isinstance(val, dict):
-                new_obj[key] = _delete_nulls(val)
-            else:
-                new_obj[key] = val
-    return new_obj
 
 
 def parse_price_text(price_display_text):
@@ -87,7 +77,7 @@ def parse_description(description):
 
 
 def get_lister(lister):
-    lister = _delete_nulls(lister)
+    lister = delete_nulls(lister)
     lister_id = lister.get("id")
     name = lister.get("name")
     agent_id = lister.get("agentId")
@@ -107,7 +97,7 @@ def get_lister(lister):
 
 
 def get_listing(listing):
-    listing = _delete_nulls(listing)
+    listing = delete_nulls(listing)
     # delete null keys for convenience
 
     property_id = listing.get("id")
@@ -135,7 +125,8 @@ def get_listing(listing):
     land_size_unit = features.get("land", {}).get("sizeUnit", {}).get("displayValue")
     price_text = listing.get("price", {}).get("display", "")
     price = parse_price_text(price_text)
-    auction = listing.get("auction")
+    auction = listing.get("auction", {}) or {}
+    auction_date = auction.get("dateTime", {}).get("value")
     description = parse_description(listing.get("description"))
     listers = [get_lister(lister) for lister in listing.get("listers", [])]
 
@@ -159,7 +150,7 @@ def get_listing(listing):
         land_size=land_size,
         land_size_unit=land_size_unit,
         price=price,
-        auction=auction,
+        auction_date=auction_date,
         description=description,
         listers=listers,
     )
