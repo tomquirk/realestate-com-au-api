@@ -87,6 +87,7 @@ def parse_description(description):
 
 
 def get_lister(lister):
+    lister = _delete_nulls(lister)
     lister_id = lister.get("id")
     name = lister.get("name")
     agent_id = lister.get("agentId")

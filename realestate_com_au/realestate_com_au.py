@@ -10,7 +10,7 @@ import re
 from fajita import Fajita
 
 import realestate_com_au.settings as settings
-from realestate_com_au.graphql import searchByQuery
+from realestate_com_au.graphql import searchBuy, searchRent
 from realestate_com_au.objects.listing import get_listing
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class RealestateComAu(Fajita):
         self,
         limit=-1,
         channel="buy",
-        location=None,
+        locations=[],
         surrounding_suburbs=True,
         exclude_no_sale_price=False,
         furnished=False,
@@ -66,7 +66,7 @@ class RealestateComAu(Fajita):
                     if limit
                     else self._DEFAULT_SEARCH_PAGE_SIZE
                 ),
-                "localities": [{"searchLocation": location}],
+                "localities": [{"searchLocation": location} for location in locations],
                 "filters": {
                     "surroundingSuburbs": surrounding_suburbs,
                     "excludeNoSalePrice": exclude_no_sale_price,
@@ -85,8 +85,12 @@ class RealestateComAu(Fajita):
                     "testListings": False,
                     "nullifyOptionals": False,
                 },
-                "query": searchByQuery.QUERY,
+                "query": (searchBuy.QUERY if channel == "buy" else searchRent.QUERY),
             }
+
+            if channel == "rent":
+                payload["variables"]["smartHide"] = False
+                payload["variables"]["recentHides"] = []
 
             return payload
 
@@ -94,7 +98,7 @@ class RealestateComAu(Fajita):
             data = res.json()
             exact_listings = (
                 data.get("data", {})
-                .get("buySearch", {})
+                .get(f"{channel}Search", {})
                 .get("results", {})
                 .get("exact", {})
                 .get("items", [])
@@ -119,6 +123,9 @@ class RealestateComAu(Fajita):
             return kwargs
 
         def is_done(items, res, **kwargs):
+            import ipdb
+
+            ipdb.set_trace()
             items_count = len(items)
             if limit > -1:
                 if items_count >= limit:
