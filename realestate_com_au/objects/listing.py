@@ -79,6 +79,13 @@ def parse_phone(phone):
     return phone.replace(" ", "")
 
 
+def parse_description(description):
+    if not description:
+        return None
+    # return description.replace("<br/>", "\n")
+    return description
+
+
 def get_lister(lister):
     lister_id = lister.get("id")
     name = lister.get("name")
@@ -128,7 +135,7 @@ def get_listing(listing):
     price_text = listing.get("price", {}).get("display", "")
     price = parse_price_text(price_text)
     auction = listing.get("auction")
-    description = listing.get("description")
+    description = parse_description(listing.get("description"))
     listers = [get_lister(lister) for lister in listing.get("listers", [])]
 
     return Listing(

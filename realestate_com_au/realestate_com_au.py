@@ -121,7 +121,7 @@ class RealestateComAu(Fajita):
         def is_done(items, res, **kwargs):
             items_count = len(items)
             if limit > -1:
-                if items_count > limit:
+                if items_count >= limit:
                     return True
 
             data = res.json()
