@@ -56,6 +56,16 @@ class RealestateComAu(Fajita):
         furnished=False,
         pets_allowed=False,
         ex_under_contract=False,
+        min_price=0,
+        max_price=-1,
+        min_bedrooms=0,
+        max_bedrooms=-1,
+        property_types=[],  # "unit apartment", "townhouse", "villa", "land", "acreage", "retire", "unitblock",
+        min_bathrooms=0,
+        min_carspaces=0,
+        min_land_size=0,
+        construction_status=None,  # NEW, ESTABLISHED
+        keywords=[],
     ):
         def get_query_variables(page=1):
             query_variables = {
@@ -75,6 +85,32 @@ class RealestateComAu(Fajita):
                     "petsAllowed": pets_allowed,
                 },
             }
+            if max_price > -1 or min_price > 0:
+                price_filter = {}
+                if max_price > -1:
+                    price_filter["maximum"] = str(max_price)
+                if min_price > 0:
+                    price_filter["minimum"] = str(min_price)
+                query_variables["filters"]["priceRange"] = price_filter
+            if max_bedrooms > -1 or min_bedrooms > 0:
+                beds_filter = {}
+                if max_bedrooms > -1:
+                    beds_filter["maximum"] = str(max_bedrooms)
+                if min_bedrooms > 0:
+                    beds_filter["minimum"] = str(min_bedrooms)
+                query_variables["filters"]["bedrooms"] = beds_filter
+            if property_types:
+                query_variables["filters"]["propertyTypes"] = property_types
+            if min_bathrooms > 0:
+                query_variables["filters"]["minimumBathroom"] = str(min_bathrooms)
+            if min_carspaces > 0:
+                query_variables["filters"]["minimumCars"] = str(min_carspaces)
+            if min_land_size > 0:
+                query_variables["filters"]["landSize"] = {"minimum": str(min_land_size)}
+            if construction_status:
+                query_variables["filters"]["constructionStatus"] = construction_status
+            if keywords:
+                query_variables["filters"]["keywords"] = {"terms": keywords}
             return query_variables
 
         def get_payload(query_variables):
