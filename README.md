@@ -23,9 +23,9 @@ listings = api.search(location="seventeen seventy, qld 4677", channel="buy")
 
 ## Data classes
 
-#### [Listing](/blob/master/realestate_com_au/objects/listing.py#L6)
+#### [Listing](/realestate_com_au/objects/listing.py#L6)
 
-Data class for a listing. See [listing.py](/blob/master/realestate_com_au/objects/listing.py#L6) for reference.
+Data class for a listing. See [listing.py](/realestate_com_au/objects/listing.py#L6) for reference.
 
 ## Terms and Conditions
 
