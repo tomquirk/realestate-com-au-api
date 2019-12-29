@@ -29,7 +29,7 @@ class RealestateComAu(Fajita):
         "sec-fetch-site": "same-site",
         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
     }
-    _MAX_SEARCH_PAGE_SIZE = 100
+    _MAX_SEARCH_PAGE_SIZE = 100  # TODO untested
     _DEFAULT_SEARCH_PAGE_SIZE = 25
 
     def __init__(
