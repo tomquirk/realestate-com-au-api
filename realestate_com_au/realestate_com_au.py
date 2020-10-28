@@ -10,7 +10,7 @@ import re
 from fajita import Fajita
 
 import realestate_com_au.settings as settings
-from realestate_com_au.graphql import searchBuy, searchRent
+from realestate_com_au.graphql import searchBuy, searchRent, searchSold
 from realestate_com_au.objects.listing import get_listing
 
 logger = logging.getLogger(__name__)
@@ -117,6 +117,15 @@ class RealestateComAu(Fajita):
                 query_variables["filters"]["keywords"] = {"terms": keywords}
             return query_variables
 
+        def get_query():
+            if (channel == "buy"):
+                return searchBuy.QUERY
+
+            if (channel == "sold"):
+                return searchSold.QUERY
+
+            return searchRent.QUERY
+
         def get_payload(query_variables):
             payload = {
                 "operationName": "searchByQuery",
@@ -125,7 +134,7 @@ class RealestateComAu(Fajita):
                     "testListings": False,
                     "nullifyOptionals": False,
                 },
-                "query": (searchBuy.QUERY if channel == "buy" else searchRent.QUERY),
+                "query": get_query(),
             }
 
             if channel == "rent":
@@ -170,7 +179,9 @@ class RealestateComAu(Fajita):
                     return True
 
             data = res.json()
-            results = data.get("data", {}).get("buySearch", {}).get("results", {})
+            results = (
+                data.get("data", {}).get(f"{channel}Search", {}).get("results", {})
+            )
             total = results.get("totalResultsCount")
 
             if items_count >= total:

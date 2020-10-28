@@ -25,6 +25,7 @@ class Listing:
     listing_company_name: str
     listing_company_phone: str
     auction_date: str
+    sold_date: str
     description: str
     listers: list = field(default_factory=list)
 
@@ -125,6 +126,7 @@ def get_listing(listing):
     land_size_unit = features.get("land", {}).get("sizeUnit", {}).get("displayValue")
     price_text = listing.get("price", {}).get("display", "")
     price = parse_price_text(price_text)
+    sold_date = listing.get("dateSold", {}).get("display")
     auction = listing.get("auction", {}) or {}
     auction_date = auction.get("dateTime", {}).get("value")
     description = parse_description(listing.get("description"))
@@ -151,6 +153,7 @@ def get_listing(listing):
         land_size_unit=land_size_unit,
         price=price,
         auction_date=auction_date,
+        sold_date=sold_date,
         description=description,
         listers=listers,
     )
