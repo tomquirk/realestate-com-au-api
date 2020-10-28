@@ -51,16 +51,16 @@ def parse_price_text(price_display_text):
 
     price = None
     if price_text[-1] == "k":
-        price = int(price_text[:-1].replace(",", ""))
+        price = float(price_text[:-1].replace(",", ""))
 
         price *= 1000
     elif price_text[-1] == "m":
-        price = int(price_text[:-1].replace(",", ""))
+        price = float(price_text[:-1].replace(",", ""))
         price *= 1000000
     else:
-        price = int(price_text.replace(",", ""))
+        price = float(price_text.replace(",", "").split('.')[0])
 
-    return price
+    return int(price)
 
 
 def parse_phone(phone):
