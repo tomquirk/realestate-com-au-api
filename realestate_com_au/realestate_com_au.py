@@ -102,7 +102,7 @@ class RealestateComAu(Fajita):
                     beds_filter["maximum"] = str(max_bedrooms)
                 if min_bedrooms > 0:
                     beds_filter["minimum"] = str(min_bedrooms)
-                query_variables["filters"]["bedrooms"] = beds_filter
+                query_variables["filters"]["bedroomsRange"] = beds_filter
             if property_types:
                 query_variables["filters"]["propertyTypes"] = property_types
             if min_bathrooms is not None and min_bathrooms > 0:
