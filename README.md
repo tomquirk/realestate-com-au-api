@@ -18,7 +18,7 @@ from realestate_com_au import RealestateComAu
 api = RealestateComAu()
 
 # Get property listings
-listings = api.search(location="seventeen seventy, qld 4677", channel="buy")
+listings = api.search(locations=["seventeen seventy, qld 4677"], channel="buy")
 ```
 
 ## Data classes

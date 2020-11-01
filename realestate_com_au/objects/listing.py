@@ -25,6 +25,7 @@ class Listing:
     listing_company_name: str
     listing_company_phone: str
     auction_date: str
+    sold_date: str
     description: str
     listers: list = field(default_factory=list)
 
@@ -51,16 +52,16 @@ def parse_price_text(price_display_text):
 
     price = None
     if price_text[-1] == "k":
-        price = int(price_text[:-1].replace(",", ""))
+        price = float(price_text[:-1].replace(",", ""))
 
         price *= 1000
     elif price_text[-1] == "m":
-        price = int(price_text[:-1].replace(",", ""))
+        price = float(price_text[:-1].replace(",", ""))
         price *= 1000000
     else:
-        price = int(price_text.replace(",", ""))
+        price = float(price_text.replace(",", "").split('.')[0])
 
-    return price
+    return int(price)
 
 
 def parse_phone(phone):
@@ -117,14 +118,14 @@ def get_listing(listing):
     bedrooms = features.get("bedrooms", {}).get("value")
     bathrooms = features.get("bathrooms", {}).get("value")
     parking_spaces = features.get("parkingSpaces", {}).get("value")
-    building_size = features.get("building", {}).get("displayValue")
-    building_size_unit = (
-        features.get("building", {}).get("sizeUnit", {}).get("displayValue")
-    )
-    land_size = features.get("land", {}).get("displayValue", {})
-    land_size_unit = features.get("land", {}).get("sizeUnit", {}).get("displayValue")
+    property_sizes = listing.get("propertySizes", {})
+    building_size = property_sizes.get("building", {}).get("displayValue")
+    building_size_unit = property_sizes.get("building", {}).get("sizeUnit", {}).get("displayValue")
+    land_size = property_sizes.get("land", {}).get("displayValue")
+    land_size_unit = property_sizes.get("land", {}).get("sizeUnit", {}).get("displayValue")
     price_text = listing.get("price", {}).get("display", "")
     price = parse_price_text(price_text)
+    sold_date = listing.get("dateSold", {}).get("display")
     auction = listing.get("auction", {}) or {}
     auction_date = auction.get("dateTime", {}).get("value")
     description = parse_description(listing.get("description"))
@@ -151,6 +152,7 @@ def get_listing(listing):
         land_size_unit=land_size_unit,
         price=price,
         auction_date=auction_date,
+        sold_date=sold_date,
         description=description,
         listers=listers,
     )
