@@ -32,7 +32,7 @@ setuptools.setup(
     url="https://github.com/tomquirk/realesate-com-au-api",
     license="MIT",
     packages=setuptools.find_packages(),
-    install_requires=["requests"],
+    install_requires=["requests", "fajita"],
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
