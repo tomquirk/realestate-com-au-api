@@ -60,12 +60,13 @@ class RealestateComAu(Fajita):
         max_price=-1,
         min_bedrooms=0,
         max_bedrooms=-1,
-        property_types=[],  # "unit apartment", "townhouse", "villa", "land", "acreage", "retire", "unitblock",
+        property_types=[],  # "house", "unit apartment", "townhouse", "villa", "land", "acreage", "retire", "unitblock",
         min_bathrooms=0,
         min_carspaces=0,
         min_land_size=0,
         construction_status=None,  # NEW, ESTABLISHED
         keywords=[],
+        exclude_keywords=[]
     ):
         def get_query_variables(page=1):
             query_variables = {
@@ -159,6 +160,14 @@ class RealestateComAu(Fajita):
                 for listing in exact_listings + surrounding_listings
             ]
 
+            # filter listings that contain exclude_keywords
+            pattern = re.compile("|".join(exclude_keywords))
+            listings = [
+                listing
+                for listing in listings
+                if not re.search(pattern, listing.description)
+            ]          
+
             return listings
 
         def get_current_page(**kwargs):
@@ -168,6 +177,7 @@ class RealestateComAu(Fajita):
         def next_page(**kwargs):
             current_page = get_current_page(**kwargs)
             kwargs["json"] = get_payload(get_query_variables(current_page + 1))
+            print(current_page + 1)
             return kwargs
 
         def is_done(items, res, **kwargs):
@@ -182,16 +192,14 @@ class RealestateComAu(Fajita):
             results = (
                 data.get("data", {}).get(f"{channel}Search", {}).get("results", {})
             )
-            total = results.get("totalResultsCount")
 
-            if items_count >= total:
-                return True
+            # total = results.get("totalResultsCount")
+            # if items_count >= total:
+            #     return True
 
             pagination = results.get("pagination")
-
-            # failsafe
             if not pagination.get("moreResultsAvailable"):
-                return False
+                return True
 
             return False
 
