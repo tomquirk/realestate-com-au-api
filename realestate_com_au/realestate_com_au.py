@@ -161,12 +161,13 @@ class RealestateComAu(Fajita):
             ]
 
             # filter listings that contain exclude_keywords
-            pattern = re.compile("|".join(exclude_keywords))
-            listings = [
-                listing
-                for listing in listings
-                if not re.search(pattern, listing.description)
-            ]          
+            if exclude_keywords:
+                pattern = re.compile("|".join(exclude_keywords))
+                listings = [
+                    listing
+                    for listing in listings
+                    if not re.search(pattern, listing.description)
+                ]          
 
             return listings
 
