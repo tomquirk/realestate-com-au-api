@@ -29,10 +29,10 @@ setuptools.setup(
     description="Python wrapper for the realestate.com.au API",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
-    url="https://github.com/tomquirk/realesate-com-au-api",
+    url="https://github.com/tomquirk/realestate-com-au-api",
     license="MIT",
     packages=setuptools.find_packages(),
-    install_requires=["requests"],
+    install_requires=["requests", "fajita"],
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
