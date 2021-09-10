@@ -11,7 +11,7 @@ pylint = "*"
 
 [packages]
 requests = "*"
-fajita = "*"
+fajita = "0.0.2"
 
 [requires]
 python_version = "3.9"
