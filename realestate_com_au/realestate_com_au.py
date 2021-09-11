@@ -178,7 +178,7 @@ class RealestateComAu(Fajita):
         def next_page(**kwargs):
             current_page = get_current_page(**kwargs)
             kwargs["json"] = get_payload(get_query_variables(current_page + 1))
-            print(current_page + 1)
+
             return kwargs
 
         def is_done(items, res, **kwargs):
