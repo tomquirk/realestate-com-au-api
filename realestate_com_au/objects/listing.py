@@ -123,7 +123,7 @@ def get_listing(listing):
     building_size = property_sizes.get("building", {}).get("displayValue")
     building_size_unit = property_sizes.get(
         "building", {}).get("sizeUnit", {}).get("displayValue")
-    land_size = int(''.join(property_sizes.get(
+    land_size = float(''.join(property_sizes.get(
         "land", {}).get("displayValue", '-1').split(',')))
     land_size_unit = property_sizes.get("land", {}).get(
         "sizeUnit", {}).get("displayValue")
