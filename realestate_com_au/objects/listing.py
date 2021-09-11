@@ -45,7 +45,8 @@ def parse_price_text(price_display_text):
     regex = r".*\$([0-9\,\.]+(?:k|m)*).*"
     price_groups = re.search(regex, price_display_text)
     price_text = (
-        price_groups.groups()[0] if price_groups and price_groups.groups() else None
+        price_groups.groups()[
+            0] if price_groups and price_groups.groups() else None
     )
     if price_text is None:
         return None
@@ -120,9 +121,12 @@ def get_listing(listing):
     parking_spaces = features.get("parkingSpaces", {}).get("value")
     property_sizes = listing.get("propertySizes", {})
     building_size = property_sizes.get("building", {}).get("displayValue")
-    building_size_unit = property_sizes.get("building", {}).get("sizeUnit", {}).get("displayValue")
-    land_size = property_sizes.get("land", {}).get("displayValue")
-    land_size_unit = property_sizes.get("land", {}).get("sizeUnit", {}).get("displayValue")
+    building_size_unit = property_sizes.get(
+        "building", {}).get("sizeUnit", {}).get("displayValue")
+    land_size = int(''.join(property_sizes.get(
+        "land", {}).get("displayValue", '-1').split(',')))
+    land_size_unit = property_sizes.get("land", {}).get(
+        "sizeUnit", {}).get("displayValue")
     price_text = listing.get("price", {}).get("display", "")
     price = parse_price_text(price_text)
     sold_date = listing.get("dateSold", {}).get("display")
