@@ -139,7 +139,6 @@ class RealestateComAu(Fajita):
             }
 
             if channel == "rent":
-                payload["variables"]["smartHide"] = False
                 payload["variables"]["recentHides"] = []
 
             return payload
