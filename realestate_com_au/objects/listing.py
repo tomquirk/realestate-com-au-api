@@ -148,8 +148,8 @@ def get_listing(listing):
     auction = listing.get("auction", {}) or {}
     auction_date = auction.get("dateTime", {}).get("value")
     description = parse_description(listing.get("description"))
-    images = [get_image(media) for media in listing.get("media", []).get('images')]
-    images_floorplans = [get_image(media) for media in listing.get("media", []).get('floorplans')]
+    images = [get_image(media) for media in listing.get("media", []).get('images',[])]
+    images_floorplans = [get_image(media) for media in listing.get("media", []).get('floorplans',[])]
     listers = [get_lister(lister) for lister in listing.get("listers", [])]
 
     return Listing(
