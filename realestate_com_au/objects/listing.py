@@ -143,7 +143,7 @@ def get_listing(listing):
         "sizeUnit", {}).get("displayValue")
     price_text = listing.get("price", {}).get("display", "")
     price = parse_price_text(price_text)
-    price_text = listing.get("price").get("display")
+    price_text = listing.get("price", {}).get("display")
     sold_date = listing.get("dateSold", {}).get("display")
     auction = listing.get("auction", {}) or {}
     auction_date = auction.get("dateTime", {}).get("value")
