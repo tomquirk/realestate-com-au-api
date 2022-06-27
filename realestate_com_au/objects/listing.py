@@ -6,6 +6,7 @@ from realestate_com_au.utils import delete_nulls
 @dataclass
 class Listing:
     id: str
+    badge: str                                              #Captures Promotional text not held elsewhere, such as 'Under Contract'
     url: str
     suburb: str
     state: str
@@ -14,6 +15,7 @@ class Listing:
     full_address: str
     property_type: str
     price: int
+    price_text: str                                         #Captures the original text, such as a price range or comment. This is lost when converting to Integer
     bedrooms: int
     bathrooms: int
     parking_spaces: int
@@ -27,6 +29,8 @@ class Listing:
     auction_date: str
     sold_date: str
     description: str
+    images: list = field(default_factory=list)              #Captures Links to the photographic media
+    images_floorplans: list = field(default_factory=list)   #Captures Links to the floorplans
     listers: list = field(default_factory=list)
 
 
@@ -40,6 +44,9 @@ class Lister:
     phone: str
     email: str
 
+@dataclass
+class MediaItem:
+    link: str
 
 def parse_price_text(price_display_text):
     regex = r".*\$([0-9\,\.]+(?:k|m)*).*"
@@ -97,12 +104,19 @@ def get_lister(lister):
         email=email,
     )
 
+def get_image(media):
+    """Creates an object representing an image from the listing. Replaces the {size} parameter with a known working varaible"""
+    size_to_insert_into_link = '1144x888-format=webp'
+    return MediaItem(
+        link=media.get('templatedUrl',{}).replace("{size}", size_to_insert_into_link)
+    )
 
 def get_listing(listing):
     listing = delete_nulls(listing)
     # delete null keys for convenience
 
     property_id = listing.get("id")
+    badge = listing.get("badge", {}).get("label")
     url = listing.get("_links", {}).get("canonical", {}).get("href")
     address = listing.get("address", {})
     suburb = address.get("suburb")
@@ -129,14 +143,18 @@ def get_listing(listing):
         "sizeUnit", {}).get("displayValue")
     price_text = listing.get("price", {}).get("display", "")
     price = parse_price_text(price_text)
+    price_text = listing.get("price", {}).get("display")
     sold_date = listing.get("dateSold", {}).get("display")
     auction = listing.get("auction", {}) or {}
     auction_date = auction.get("dateTime", {}).get("value")
     description = parse_description(listing.get("description"))
+    images = [get_image(media) for media in listing.get("media", []).get('images',[])]
+    images_floorplans = [get_image(media) for media in listing.get("media", []).get('floorplans',[])]
     listers = [get_lister(lister) for lister in listing.get("listers", [])]
 
     return Listing(
         id=property_id,
+        badge=badge,
         url=url,
         suburb=suburb,
         state=state,
@@ -155,8 +173,11 @@ def get_listing(listing):
         land_size=land_size,
         land_size_unit=land_size_unit,
         price=price,
+        price_text=price_text,
         auction_date=auction_date,
         sold_date=sold_date,
         description=description,
+        images=images,
+        images_floorplans=images_floorplans,
         listers=listers,
     )
