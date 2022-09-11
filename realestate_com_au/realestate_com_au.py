@@ -165,7 +165,7 @@ class RealestateComAu(Fajita):
                 listings = [
                     listing
                     for listing in listings
-                    if not re.search(pattern, listing.description)
+                    if not re.search(pattern, str(listing.description))
                 ]          
 
             return listings
