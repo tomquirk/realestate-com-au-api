@@ -49,7 +49,7 @@ class MediaItem:
     link: str
 
 def parse_price_text(price_display_text):
-    regex = r".*\$([0-9\,\.]+(?:k|m)*).*"
+    regex = r".*\$([0-9\,\.]+(?:k|K|m|M)*).*"
     price_groups = re.search(regex, price_display_text)
     price_text = (
         price_groups.groups()[
@@ -59,11 +59,11 @@ def parse_price_text(price_display_text):
         return None
 
     price = None
-    if price_text[-1] == "k":
+    if price_text[-1] == "k" or price_text[-1] == "K":
         price = float(price_text[:-1].replace(",", ""))
 
         price *= 1000
-    elif price_text[-1] == "m":
+    elif price_text[-1] == "m" or price_text[-1] == "M":
         price = float(price_text[:-1].replace(",", ""))
         price *= 1000000
     else:

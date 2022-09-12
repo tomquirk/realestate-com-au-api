@@ -1,5 +1,5 @@
 """
-Provides linkedin api-related code
+Provides realestate.com.au api-related code
 """
 import random
 import logging
@@ -15,6 +15,13 @@ from realestate_com_au.objects.listing import get_listing
 
 logger = logging.getLogger(__name__)
 
+common_user_agents = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
+    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; FSL 7.0.6.01001)',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393'
+    ]
+
 
 class RealestateComAu(Fajita):
     """
@@ -27,7 +34,7 @@ class RealestateComAu(Fajita):
         "origin": "https://www.realestate.com.au",
         "sec-fetch-mode": "cors",
         "sec-fetch-site": "same-site",
-        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
+        "user-agent": random.choice(common_user_agents),
     }
     _MAX_SEARCH_PAGE_SIZE = 100  # TODO untested
     _DEFAULT_SEARCH_PAGE_SIZE = 25
@@ -49,6 +56,7 @@ class RealestateComAu(Fajita):
     def search(
         self,
         limit=-1,
+        sold_limit=-1,
         channel="buy",
         locations=[],
         surrounding_suburbs=True,
@@ -184,18 +192,18 @@ class RealestateComAu(Fajita):
             if not items:
                 return True
             items_count = len(items)
-            if limit > -1:
-                if items_count >= limit:
-                    return True
+
+            if limit > -1 and items_count >= limit:
+                return True
+
+            #Sold Listings Limit (Sold listings accumulate indefinetely. Enables data from X most recent sold listings only)
+            if channel == 'sold' and sold_limit > -1 and items_count >= sold_limit:
+                return True
 
             data = res.json()
             results = (
                 data.get("data", {}).get(f"{channel}Search", {}).get("results", {})
             )
-
-            # total = results.get("totalResultsCount")
-            # if items_count >= total:
-            #     return True
 
             pagination = results.get("pagination")
             if not pagination.get("moreResultsAvailable"):
