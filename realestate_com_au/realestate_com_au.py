@@ -192,15 +192,13 @@ class RealestateComAu(Fajita):
             if not items:
                 return True
             items_count = len(items)
-            if limit > -1:
-                if items_count >= limit:
-                    return True
+
+            if limit > -1 and items_count >= limit:
+                return True
 
             #Sold Listings Limit (Sold listings accumulate indefinetely. Enables data from X most recent sold listings only)
-            if channel == 'sold':
-                if sold_limit > -1:
-                    if items_count >= sold_limit+1:
-                        return True
+            if channel == 'sold' and sold_limit > -1 and items_count >= sold_limit:
+                return True
 
             data = res.json()
             results = (
