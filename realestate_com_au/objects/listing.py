@@ -27,6 +27,7 @@ class Listing:
     listing_company_name: str
     listing_company_phone: str
     auction_date: str
+    available_date: str
     sold_date: str
     description: str
     images: list = field(default_factory=list)              #Captures Links to the photographic media
@@ -56,6 +57,12 @@ class Inspection:
     label: str
     label_short: str
 
+def parse_availability(availability):
+    if not availability:
+        return None
+    # Cut off the "Available" text from the front of the string so dates can be somewhat parsed
+    return availability.replace("Available ", "")
+
 def parse_price_text(price_display_text):
     regex = r".*\$([0-9\,\.]+(?:k|K|m|M)*).*"
     price_groups = re.search(regex, price_display_text)
@@ -84,7 +91,6 @@ def parse_phone(phone):
     if not phone:
         return None
     return phone.replace(" ", "")
-
 
 def parse_description(description):
     if not description:
@@ -167,6 +173,8 @@ def get_listing(listing):
     sold_date = listing.get("dateSold", {}).get("display")
     auction = listing.get("auction", {}) or {}
     auction_date = auction.get("dateTime", {}).get("value")
+    available_date_text = listing.get("availableDate", {}).get("display")
+    available_date = parse_availability(available_date_text)
     description = parse_description(listing.get("description"))
     images = [get_image(media) for media in listing.get("media", []).get('images',[])]
     images_floorplans = [get_image(media) for media in listing.get("media", []).get('floorplans',[])]
@@ -196,6 +204,7 @@ def get_listing(listing):
         price=price,
         price_text=price_text,
         auction_date=auction_date,
+        available_date=available_date,
         sold_date=sold_date,
         description=description,
         images=images,
