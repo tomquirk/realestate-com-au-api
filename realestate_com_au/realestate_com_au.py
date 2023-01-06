@@ -16,11 +16,11 @@ from realestate_com_au.objects.listing import get_listing
 logger = logging.getLogger(__name__)
 
 common_user_agents = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
-    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; FSL 7.0.6.01001)',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393'
-    ]
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
+    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; FSL 7.0.6.01001)",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393",
+]
 
 
 class RealestateComAu(Fajita):
@@ -29,6 +29,7 @@ class RealestateComAu(Fajita):
     """
 
     API_BASE_URL = "https://lexa.realestate.com.au/graphql"
+    AGENT_CONTACT_BASE_URL = "https://agent-contact.realestate.com.au"
     REQUEST_HEADERS = {
         "content-type": "application/json",
         "origin": "https://www.realestate.com.au",
@@ -40,7 +41,9 @@ class RealestateComAu(Fajita):
     _DEFAULT_SEARCH_PAGE_SIZE = 25
 
     def __init__(
-        self, proxies={}, debug=False,
+        self,
+        proxies={},
+        debug=False,
     ):
         Fajita.__init__(
             self,
@@ -74,7 +77,7 @@ class RealestateComAu(Fajita):
         min_land_size=0,
         construction_status=None,  # NEW, ESTABLISHED
         keywords=[],
-        exclude_keywords=[]
+        exclude_keywords=[],
     ):
         def get_query_variables(page=1):
             query_variables = {
@@ -127,10 +130,10 @@ class RealestateComAu(Fajita):
             return query_variables
 
         def get_query():
-            if (channel == "buy"):
+            if channel == "buy":
                 return searchBuy.QUERY
 
-            if (channel == "sold"):
+            if channel == "sold":
                 return searchSold.QUERY
 
             return searchRent.QUERY
@@ -174,7 +177,7 @@ class RealestateComAu(Fajita):
                     listing
                     for listing in listings
                     if not re.search(pattern, str(listing.description))
-                ]          
+                ]
 
             return listings
 
@@ -196,8 +199,8 @@ class RealestateComAu(Fajita):
             if limit > -1 and items_count >= limit:
                 return True
 
-            #Sold Listings Limit (Sold listings accumulate indefinetely. Enables data from X most recent sold listings only)
-            if channel == 'sold' and sold_limit > -1 and items_count >= sold_limit:
+            # Sold Listings Limit (Sold listings accumulate indefinetely. Enables data from X most recent sold listings only)
+            if channel == "sold" and sold_limit > -1 and items_count >= sold_limit:
                 return True
 
             data = res.json()
@@ -221,3 +224,36 @@ class RealestateComAu(Fajita):
         )
 
         return listings
+
+    """
+    Returns true if form was submitted successfully.
+    """
+    def contact_agent(
+        self,
+        listing_id,
+        from_address,
+        from_name,
+        message,
+        subject="",
+        from_phone="",
+    ):
+        payload = {
+            "lookingTo": subject,
+            "name": from_name,
+            "fromAddress": from_address,
+            "fromPhone": from_phone,
+            "message": message,
+            "likeTo": [],
+        }
+
+        res = self._post(
+            f"/contact-agent/listing/{listing_id}",
+            base_url=self.AGENT_CONTACT_BASE_URL,
+            json=payload,
+        )
+
+        error = res.status_code != 201
+        if error:
+            print("Error: ", res.text)
+
+        return not error
