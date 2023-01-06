@@ -27,11 +27,13 @@ class Listing:
     listing_company_name: str
     listing_company_phone: str
     auction_date: str
+    available_date: str
     sold_date: str
     description: str
     images: list = field(default_factory=list)              #Captures Links to the photographic media
     images_floorplans: list = field(default_factory=list)   #Captures Links to the floorplans
     listers: list = field(default_factory=list)
+    inspections: list = field(default_factory=list)         # Captures inspections
 
 
 @dataclass
@@ -47,6 +49,19 @@ class Lister:
 @dataclass
 class MediaItem:
     link: str
+
+@dataclass
+class Inspection:
+    start_time: str
+    end_time: str
+    label: str
+    label_short: str
+
+def parse_availability(availability):
+    if not availability:
+        return None
+    # Cut off the "Available" text from the front of the string so dates can be somewhat parsed
+    return availability.replace("Available ", "")
 
 def parse_price_text(price_display_text):
     regex = r".*\$([0-9\,\.]+(?:k|K|m|M)*).*"
@@ -77,13 +92,11 @@ def parse_phone(phone):
         return None
     return phone.replace(" ", "")
 
-
 def parse_description(description):
     if not description:
         return None
     # return description.replace("<br/>", "\n")
     return description
-
 
 def get_lister(lister):
     lister = delete_nulls(lister)
@@ -109,6 +122,19 @@ def get_image(media):
     size_to_insert_into_link = '1144x888-format=webp'
     return MediaItem(
         link=media.get('templatedUrl',{}).replace("{size}", size_to_insert_into_link)
+    )
+
+def get_inspection(inspection):
+    inspection = delete_nulls(inspection)
+    start_time = inspection.get("startTime")
+    end_time = inspection.get("endTime")
+    label = inspection.get("display", []).get("longLabel")
+    label_short = inspection.get("display", []).get("shortLabel")
+    return Inspection(
+        start_time=start_time,
+        end_time=end_time,
+        label=label,
+        label_short=label_short
     )
 
 def get_listing(listing):
@@ -147,10 +173,13 @@ def get_listing(listing):
     sold_date = listing.get("dateSold", {}).get("display")
     auction = listing.get("auction", {}) or {}
     auction_date = auction.get("dateTime", {}).get("value")
+    available_date_text = listing.get("availableDate", {}).get("display")
+    available_date = parse_availability(available_date_text)
     description = parse_description(listing.get("description"))
     images = [get_image(media) for media in listing.get("media", []).get('images',[])]
     images_floorplans = [get_image(media) for media in listing.get("media", []).get('floorplans',[])]
     listers = [get_lister(lister) for lister in listing.get("listers", [])]
+    inspections = [get_inspection(inspection) for inspection in listing.get("inspections", [])]
 
     return Listing(
         id=property_id,
@@ -175,9 +204,11 @@ def get_listing(listing):
         price=price,
         price_text=price_text,
         auction_date=auction_date,
+        available_date=available_date,
         sold_date=sold_date,
         description=description,
         images=images,
         images_floorplans=images_floorplans,
         listers=listers,
+        inspections=inspections
     )
