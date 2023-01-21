@@ -59,6 +59,7 @@ class RealestateComAu(Fajita):
     def search(
         self,
         limit=-1,
+        start_page=1,
         sold_limit=-1,
         channel="buy",
         locations=[],
@@ -79,7 +80,7 @@ class RealestateComAu(Fajita):
         keywords=[],
         exclude_keywords=[],
     ):
-        def get_query_variables(page=1):
+        def get_query_variables(page=start_page):
             query_variables = {
                 "channel": channel,
                 "page": page,
@@ -228,6 +229,7 @@ class RealestateComAu(Fajita):
     """
     Returns true if form was submitted successfully.
     """
+
     def contact_agent(
         self,
         listing_id,
