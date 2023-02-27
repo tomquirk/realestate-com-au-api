@@ -79,6 +79,7 @@ class RealestateComAu(Fajita):
         construction_status=None,  # NEW, ESTABLISHED
         keywords=[],
         exclude_keywords=[],
+        sort_type=None,
     ):
         def get_query_variables(page=start_page):
             query_variables = {
@@ -128,6 +129,8 @@ class RealestateComAu(Fajita):
                 query_variables["filters"]["constructionStatus"] = construction_status
             if keywords:
                 query_variables["filters"]["keywords"] = {"terms": keywords}
+            if sort_type:
+                query_variables["sort_type"]=sort_type
             return query_variables
 
         def get_query():
