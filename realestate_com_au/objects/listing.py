@@ -30,11 +30,11 @@ class Listing:
     available_date: str
     sold_date: str
     description: str
+    statement_of_information: str
     images: list = field(default_factory=list)              #Captures Links to the photographic media
     images_floorplans: list = field(default_factory=list)   #Captures Links to the floorplans
     listers: list = field(default_factory=list)
     inspections: list = field(default_factory=list)         # Captures inspections
-
 
 @dataclass
 class Lister:
@@ -180,6 +180,7 @@ def get_listing(listing):
     images_floorplans = [get_image(media) for media in listing.get("media", []).get('floorplans',[])]
     listers = [get_lister(lister) for lister in listing.get("listers", [])]
     inspections = [get_inspection(inspection) for inspection in listing.get("inspections", [])]
+    statement_of_information = listing.get("media", []).get("statementOfInformation", {}).get("href")
 
     return Listing(
         id=property_id,
@@ -207,6 +208,7 @@ def get_listing(listing):
         available_date=available_date,
         sold_date=sold_date,
         description=description,
+        statement_of_information=statement_of_information,
         images=images,
         images_floorplans=images_floorplans,
         listers=listers,
