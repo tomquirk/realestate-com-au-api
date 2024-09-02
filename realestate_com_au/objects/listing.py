@@ -6,7 +6,7 @@ from realestate_com_au.utils import delete_nulls
 @dataclass
 class Listing:
     id: str
-    badge: str                                              #Captures Promotional text not held elsewhere, such as 'Under Contract'
+    badge: str  # Captures Promotional text not held elsewhere, such as 'Under Contract'
     url: str
     suburb: str
     state: str
@@ -15,7 +15,7 @@ class Listing:
     full_address: str
     property_type: str
     price: int
-    price_text: str                                         #Captures the original text, such as a price range or comment. This is lost when converting to Integer
+    price_text: str  # Captures the original text, such as a price range or comment. This is lost when converting to Integer
     bedrooms: int
     bathrooms: int
     parking_spaces: int
@@ -31,10 +31,15 @@ class Listing:
     sold_date: str
     description: str
     statement_of_information: str
-    images: list = field(default_factory=list)              #Captures Links to the photographic media
-    images_floorplans: list = field(default_factory=list)   #Captures Links to the floorplans
+    images: list = field(
+        default_factory=list
+    )  # Captures Links to the photographic media
+    images_floorplans: list = field(
+        default_factory=list
+    )  # Captures Links to the floorplans
     listers: list = field(default_factory=list)
-    inspections: list = field(default_factory=list)         # Captures inspections
+    inspections: list = field(default_factory=list)  # Captures inspections
+
 
 @dataclass
 class Lister:
@@ -46,9 +51,11 @@ class Lister:
     phone: str
     email: str
 
+
 @dataclass
 class MediaItem:
     link: str
+
 
 @dataclass
 class Inspection:
@@ -57,18 +64,19 @@ class Inspection:
     label: str
     label_short: str
 
+
 def parse_availability(availability):
     if not availability:
         return None
     # Cut off the "Available" text from the front of the string so dates can be somewhat parsed
     return availability.replace("Available ", "")
 
+
 def parse_price_text(price_display_text):
     regex = r".*\$([0-9\,\.]+(?:k|K|m|M)*).*"
     price_groups = re.search(regex, price_display_text)
     price_text = (
-        price_groups.groups()[
-            0] if price_groups and price_groups.groups() else None
+        price_groups.groups()[0] if price_groups and price_groups.groups() else None
     )
     if price_text is None:
         return None
@@ -82,7 +90,7 @@ def parse_price_text(price_display_text):
         price = float(price_text[:-1].replace(",", ""))
         price *= 1000000
     else:
-        price = float(price_text.replace(",", "").split('.')[0])
+        price = float(price_text.replace(",", "").split(".")[0])
 
     return int(price)
 
@@ -92,11 +100,13 @@ def parse_phone(phone):
         return None
     return phone.replace(" ", "")
 
+
 def parse_description(description):
     if not description:
         return None
     # return description.replace("<br/>", "\n")
     return description
+
 
 def get_lister(lister):
     lister = delete_nulls(lister)
@@ -117,12 +127,14 @@ def get_lister(lister):
         email=email,
     )
 
+
 def get_image(media):
     """Creates an object representing an image from the listing. Replaces the {size} parameter with a known working varaible"""
-    size_to_insert_into_link = '1144x888-format=webp'
+    size_to_insert_into_link = "1144x888-format=webp"
     return MediaItem(
-        link=media.get('templatedUrl',{}).replace("{size}", size_to_insert_into_link)
+        link=media.get("templatedUrl", {}).replace("{size}", size_to_insert_into_link)
     )
+
 
 def get_inspection(inspection):
     inspection = delete_nulls(inspection)
@@ -131,11 +143,9 @@ def get_inspection(inspection):
     label = inspection.get("display", []).get("longLabel")
     label_short = inspection.get("display", []).get("shortLabel")
     return Inspection(
-        start_time=start_time,
-        end_time=end_time,
-        label=label,
-        label_short=label_short
+        start_time=start_time, end_time=end_time, label=label, label_short=label_short
     )
+
 
 def get_listing(listing):
     listing = delete_nulls(listing)
@@ -161,12 +171,15 @@ def get_listing(listing):
     parking_spaces = features.get("parkingSpaces", {}).get("value")
     property_sizes = listing.get("propertySizes", {})
     building_size = property_sizes.get("building", {}).get("displayValue")
-    building_size_unit = property_sizes.get(
-        "building", {}).get("sizeUnit", {}).get("displayValue")
-    land_size = float(''.join(property_sizes.get(
-        "land", {}).get("displayValue", '-1').split(',')))
-    land_size_unit = property_sizes.get("land", {}).get(
-        "sizeUnit", {}).get("displayValue")
+    building_size_unit = (
+        property_sizes.get("building", {}).get("sizeUnit", {}).get("displayValue")
+    )
+    land_size = float(
+        "".join(property_sizes.get("land", {}).get("displayValue", "-1").split(","))
+    )
+    land_size_unit = (
+        property_sizes.get("land", {}).get("sizeUnit", {}).get("displayValue")
+    )
     price_text = listing.get("price", {}).get("display", "")
     price = parse_price_text(price_text)
     price_text = listing.get("price", {}).get("display")
@@ -176,11 +189,17 @@ def get_listing(listing):
     available_date_text = listing.get("availableDate", {}).get("display")
     available_date = parse_availability(available_date_text)
     description = parse_description(listing.get("description"))
-    images = [get_image(media) for media in listing.get("media", []).get('images',[])]
-    images_floorplans = [get_image(media) for media in listing.get("media", []).get('floorplans',[])]
+    images = [get_image(media) for media in listing.get("media", []).get("images", [])]
+    images_floorplans = [
+        get_image(media) for media in listing.get("media", []).get("floorplans", [])
+    ]
     listers = [get_lister(lister) for lister in listing.get("listers", [])]
-    inspections = [get_inspection(inspection) for inspection in listing.get("inspections", [])]
-    statement_of_information = listing.get("media", []).get("statementOfInformation", {}).get("href")
+    inspections = [
+        get_inspection(inspection) for inspection in listing.get("inspections", [])
+    ]
+    statement_of_information = (
+        listing.get("media", []).get("statementOfInformation", {}).get("href")
+    )
 
     return Listing(
         id=property_id,
@@ -212,5 +231,5 @@ def get_listing(listing):
         images=images,
         images_floorplans=images_floorplans,
         listers=listers,
-        inspections=inspections
+        inspections=inspections,
     )

@@ -1,6 +1,12 @@
-# realestate-com-au-api
+<div align="center">
 
-🏠 Python wrapper for the realestate.com.au API
+# realestate.com.au API for Python
+
+![Build](https://img.shields.io/github/actions/workflow/status/tomquirk/realestate-com-au-api/ci.yml?label=Build&logo=github) [![GitHub Release](https://img.shields.io/github/v/release/tomquirk/realestate-com-au-api?label=PyPI&logo=python)](https://pypi.org/project/realestate-com-au-api/) [![License](https://img.shields.io/badge/License-MIT-blue)](#license)
+
+Search Australian real estate listings with Python.
+
+</div>
 
 ## Installation
 

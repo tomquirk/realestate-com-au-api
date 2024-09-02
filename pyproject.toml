@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "realestate_com_au_api"
+version = "0.0.1b1"
+description = "Realestate.com.au API for Python"
+authors = ["Tom Quirk <tom@codalabs.au>"]
+maintainers = ["Tom Quirk <tom@codalabs.au>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/tomquirk/realestate-com-au-api"
+repository = "https://github.com/tomquirk/realestate-com-au-api"
+documentation = "https://github.com/tomquirk/realestate-com-au-api"
+packages = [{include = "realestate_com_au"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.32.3"
+fajita = "^0.0.2"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.8.0"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

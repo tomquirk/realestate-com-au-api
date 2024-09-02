@@ -1,6 +1,7 @@
 """
 Provides realestate.com.au api-related code
 """
+
 import random
 import logging
 from time import sleep
@@ -79,7 +80,7 @@ class RealestateComAu(Fajita):
         construction_status=None,  # NEW, ESTABLISHED
         keywords=[],
         exclude_keywords=[],
-        sort_type="relevance", # // "relevance", "price-desc", "price-asc", "new-desc", "new-asc", "next-inspection-time", "next-auction-time"
+        sort_type="relevance",  # // "relevance", "price-desc", "price-asc", "new-desc", "new-asc", "next-inspection-time", "next-auction-time"
     ):
         def get_query_variables(page=start_page):
             query_variables = {
@@ -130,7 +131,7 @@ class RealestateComAu(Fajita):
             if keywords:
                 query_variables["filters"]["keywords"] = {"terms": keywords}
             if sort_type:
-                query_variables["sortType"]=sort_type
+                query_variables["sortType"] = sort_type
             return query_variables
 
         def get_query():
